@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Tenho uma proposta 🗓️</title>
+<meta name="theme-color" content="#c25b7c" />
+<style>
+  /* ============================================================
+     CONFIG VISUAL — pode mexer à vontade
+     ============================================================ */
+  :root{
+    --bg1:#f4c4b6;       /* pêssego levemente rosado */
+    --bg2:#f3ddd2;       /* creme morno */
+    --bg3:#b6abc6;       /* malva suave */
+    --rosa:#cf6088;        /* rosa romântico (cor de destaque) */
+    --rosa-escuro:#a23f63;
+    --roxo:#7d5a86;        /* ameixa suave */
+    --card:rgba(255,255,255,.78);
+    --texto:#3a2b3f;
+    --sombra:0 20px 60px rgba(120,40,80,.25);
+    --raio:26px;
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--texto);
+    background:linear-gradient(-45deg,var(--bg1),var(--bg2),var(--bg3),#d6b6d6);
+    background-size:400% 400%;
+    animation:gradiente 16s ease infinite;
+    overflow-x:hidden;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px;
+  }
+  @keyframes gradiente{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
+
+  /* corações flutuando ao fundo */
+  #ceu{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+  .floaty{position:absolute;bottom:-60px;font-size:26px;opacity:.0;animation:subir linear forwards;filter:drop-shadow(0 4px 6px rgba(0,0,0,.08))}
+  @keyframes subir{
+    0%{transform:translateY(0) rotate(0);opacity:0}
+    10%{opacity:.28}
+    90%{opacity:.28}
+    100%{transform:translateY(-110dvh) rotate(360deg);opacity:0}
+  }
+
+  /* canvas de confete */
+  #confete{position:fixed;inset:0;pointer-events:none;z-index:50}
+
+  .palco{
+    position:relative;
+    z-index:2;
+    width:min(560px,100%);
+    margin:auto;            /* centraliza, mas deixa rolar quando é mais alto que a tela */
+  }
+
+  .card{
+    background:var(--card);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.6);
+    border-radius:var(--raio);
+    box-shadow:var(--sombra);
+    padding:34px 26px 30px;
+    text-align:center;
+  }
+
+  /* telas */
+  .tela{display:none;animation:entra .5s cubic-bezier(.2,.9,.3,1.2)}
+  .tela.ativa{display:block}
+  @keyframes entra{
+    from{opacity:0;transform:translateY(18px) scale(.97)}
+    to{opacity:1;transform:none}
+  }
+
+  h1{font-size:clamp(24px,6vw,34px);margin:.2em 0 .35em;line-height:1.2}
+  h2{font-size:clamp(20px,5vw,28px);margin:.1em 0 .15em}
+  p.sub{margin:.2em 0 1.3em;opacity:.78;font-size:clamp(14px,3.6vw,17px);transition:color .2s,opacity .2s}
+  p.sub.aviso{color:var(--rosa-escuro);opacity:1;font-weight:700}
+  .emoji-grande{font-size:54px;display:block;margin-bottom:6px;animation:pulsa 2.2s ease-in-out infinite}
+  @keyframes pulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+
+  /* botões base */
+  .btn{
+    font:inherit;font-weight:700;cursor:pointer;border:none;
+    border-radius:999px;padding:15px 30px;font-size:17px;
+    transition:transform .15s ease,box-shadow .2s ease,background .2s ease;
+    box-shadow:0 8px 22px rgba(232,62,107,.35);
+  }
+  .btn:active{transform:scale(.96)}
+  .btn-sim{
+    background:linear-gradient(135deg,var(--rosa),var(--rosa-escuro));
+    color:#fff;
+  }
+  .btn-sim:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(232,62,107,.5)}
+  .btn-secundario{
+    background:#fff;color:var(--rosa-escuro);
+    box-shadow:0 6px 16px rgba(120,40,80,.18);
+  }
+  .btn-fantasma{background:rgba(255,255,255,.55);color:var(--texto);box-shadow:none}
+
+  .linha-botoes{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:10px;min-height:64px}
+
+  /* botão NÃO que foge */
+  #btnNao{
+    background:#fff;color:#5f4d63;
+    border:2px solid rgba(125,90,134,.55);
+    box-shadow:0 6px 16px rgba(120,40,80,.2);
+    transition:left .32s cubic-bezier(.22,1,.36,1),
+               top  .32s cubic-bezier(.22,1,.36,1),
+               transform .2s ease, opacity .2s ease;
+    will-change:left,top,transform;
+    max-width:min(82vw,300px);   /* nunca mais largo que a tela */
+    white-space:normal;          /* frase longa quebra linha em vez de vazar */
+    line-height:1.2;
+  }
+  #btnNao.fugindo{position:fixed;z-index:30;margin:0}
+  #btnNao.sumiu{opacity:0;pointer-events:none;transform:scale(.3)!important}
+
+  /* botões-piada que fogem dentro do card (intro/final) */
+  .btnfoge{
+    background:#fff;color:#5f4d63;
+    border:2px solid rgba(125,90,134,.55);
+    box-shadow:0 6px 16px rgba(120,40,80,.2);
+    max-width:min(70vw,260px);white-space:normal;line-height:1.2;
+    transition:left .3s cubic-bezier(.22,1,.36,1),
+               top  .3s cubic-bezier(.22,1,.36,1),
+               transform .2s ease, opacity .2s ease;
+  }
+  .btnfoge.solto{position:fixed;z-index:30;margin:0}
+
+  /* grade de opções (dia/hora/lugar) */
+  .grade{display:grid;gap:12px;margin:6px 0 4px}
+  .grade.col2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:430px){.grade.col2{grid-template-columns:1fr}}
+  .opcao{
+    display:flex;align-items:center;gap:12px;text-align:left;
+    background:#fff;border:2px solid transparent;border-radius:18px;
+    padding:14px 16px;cursor:pointer;font:inherit;color:var(--texto);
+    box-shadow:0 6px 16px rgba(120,40,80,.1);
+    transition:transform .14s ease,border-color .14s ease,box-shadow .2s ease;
+  }
+  .opcao:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(120,40,80,.16)}
+  .opcao.sel{border-color:var(--rosa);box-shadow:0 10px 26px rgba(232,62,107,.3)}
+  .opcao.flash{animation:flashsel .5s ease}
+  @keyframes flashsel{0%{transform:scale(1)}40%{transform:scale(1.06);box-shadow:0 12px 30px rgba(232,62,107,.45)}100%{transform:scale(1)}}
+  .opcao .ic{font-size:26px;flex:0 0 auto;width:34px;text-align:center}
+  .opcao .txt b{display:block;font-size:16px}
+  .opcao .txt small{opacity:.7;font-size:13px}
+  .opcao .check{margin-left:auto;color:var(--rosa);font-weight:900;opacity:0;transition:opacity .15s}
+  .opcao.sel .check{opacity:1}
+  /* lugar ao ar livre com previsão de chuva (bloqueado) */
+  .opcao.chuva{opacity:.6;background:#fff6f8;cursor:not-allowed}
+  .opcao.chuva:hover{transform:none;box-shadow:0 6px 16px rgba(120,40,80,.1)}
+  .opcao.chuva .txt b{text-decoration:line-through;text-decoration-color:var(--rosa-escuro);text-decoration-thickness:2px}
+  .opcao.chuva .txt small{color:var(--rosa-escuro);opacity:1;font-weight:700}
+
+  /* cartão de previsão do tempo */
+  .clima{
+    display:none;align-items:center;gap:12px;text-align:left;
+    background:#fff;border-radius:16px;padding:10px 14px;margin:0 0 14px;
+    box-shadow:0 6px 16px rgba(120,40,80,.1);
+    animation:entra .4s ease;
+  }
+  .clima.show{display:flex}
+  .clima.carregando{justify-content:center;color:var(--texto);opacity:.7;font-size:14px}
+  .clima .wemoji{font-size:30px;line-height:1}
+  .clima .winfo b{display:block;font-size:15px}
+  .clima .winfo small{opacity:.7;font-size:12px}
+  .clima .wtemp{margin-left:auto;font-weight:800;font-size:17px;color:var(--rosa-escuro);white-space:nowrap}
+
+  /* seletor de hora exata (aparece após escolher a parte do dia) */
+  .horaexata{display:none;flex-direction:column;gap:8px;align-items:center;margin:14px 0 2px;animation:entra .35s ease}
+  .horaexata.show{display:flex}
+  .horaexata label{font-size:13px;opacity:.7}
+  .horaexata input[type=time]{
+    font:inherit;font-weight:800;font-size:20px;color:var(--texto);
+    background:#fff;border:2px solid rgba(0,0,0,.08);border-radius:14px;
+    padding:10px 16px;box-shadow:0 6px 16px rgba(120,40,80,.1);
+  }
+  .horaexata input[type=time]:focus{outline:none;border-color:var(--rosa)}
+
+  /* campo "eu escolho o lugar" */
+  .lugarlivre{display:none;flex-direction:column;gap:8px;margin:2px 0 2px;animation:entra .35s ease}
+  .lugarlivre.show{display:flex}
+  .lugarlivre label{font-size:13px;opacity:.7;text-align:center}
+  .lugarlivre input[type=text]{
+    width:100%;font:inherit;font-size:16px;color:var(--texto);text-align:center;
+    background:#fff;border:2px solid rgba(0,0,0,.08);border-radius:14px;
+    padding:12px 14px;box-shadow:0 6px 16px rgba(120,40,80,.1);
+  }
+  .lugarlivre input[type=text]:focus{outline:none;border-color:var(--rosa)}
+
+  textarea{
+    width:100%;border:2px solid rgba(0,0,0,.08);border-radius:16px;
+    padding:14px;font:inherit;resize:vertical;min-height:84px;background:#fff;color:var(--texto);
+  }
+  textarea:focus{outline:none;border-color:var(--rosa)}
+
+  /* progresso */
+  .progresso{display:flex;gap:7px;justify-content:center;margin-bottom:18px}
+  .pip{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.55);transition:.3s}
+  .pip.on{background:var(--rosa);transform:scale(1.25)}
+
+  .rodape-passo{display:flex;justify-content:space-between;gap:10px;margin-top:20px;align-items:center}
+  .voltar{background:none;border:none;color:var(--roxo);font:inherit;font-weight:600;cursor:pointer;opacity:.8;padding:8px}
+  .voltar:hover{opacity:1}
+  .voltar:disabled{opacity:.25;cursor:default}
+
+  /* resumo final */
+  .resumo{background:#fff;border-radius:18px;padding:8px 18px;margin:14px 0 6px;text-align:left}
+  .resumo .item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px dashed rgba(0,0,0,.08)}
+  .resumo .item:last-child{border-bottom:none}
+  .resumo .item .ic{font-size:24px;width:30px;text-align:center}
+  .resumo .item b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.5px;opacity:.55}
+  .resumo .item span{font-size:17px;font-weight:600}
+
+  .statusenvio{font-size:13px;opacity:.7;margin-top:14px;min-height:18px}
+  .confirmado-emoji{font-size:64px;animation:pop .6s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+  .mini{font-size:12px;opacity:.55;margin-top:18px}
+  a.link{color:var(--rosa-escuro);font-weight:700;text-decoration:none}
+
+  /* telas bem estreitas (celular) */
+  @media(max-width:400px){
+    body{padding:12px}
+    .card{padding:26px 18px 22px}
+    .btn{padding:14px 24px;font-size:16px}
+  }
+</style>
+</head>
+<body>
+<div id="ceu"></div>
+<canvas id="confete"></canvas>
+
+<div class="palco">
+  <div class="card">
+
+    <!-- progresso (aparece nas etapas do meio) -->
+    <div class="progresso" id="progresso" style="display:none">
+      <span class="pip" data-pip="2"></span>
+      <span class="pip" data-pip="3"></span>
+      <span class="pip" data-pip="4"></span>
+      <span class="pip" data-pip="5"></span>
+      <span class="pip" data-pip="6"></span>
+    </div>
+
+    <!-- TELA 0: INTRO -->
+    <section class="tela ativa" data-tela="0">
+      <span class="emoji-grande">👋</span>
+      <h1 id="tituloIntro">Oi. Tava pensando em ti.</h1>
+      <p class="sub">Sei que teu tempo anda curto entre o trampo e a facul, então deixei tudo prontinho aqui.</p>
+      <div class="linha-botoes">
+        <button class="btn btn-sim" id="btnPodeFalar" onclick="irPara(1)">Pode falar</button>
+        <button class="btn btnfoge" id="btnAgoraNao">Agora não</button>
+      </div>
+    </section>
+
+    <!-- TELA 1: A PERGUNTA -->
+    <section class="tela" data-tela="1">
+      <span class="emoji-grande">🌹</span>
+      <h1 id="tituloPergunta">Topa um segundo encontro?</h1>
+      <p class="sub" id="subPergunta">Saí da última vez já querendo a próxima. Topa de novo?</p>
+      <div class="linha-botoes" id="areaPergunta">
+        <button class="btn btn-sim" id="btnSim" onclick="topar()">Topo</button>
+        <button class="btn" id="btnNao">Não</button>
+      </div>
+    </section>
+
+    <!-- TELA 2: DIA -->
+    <section class="tela" data-tela="2">
+      <h2>Que dia eu te roubo umas horas?</h2>
+      <p class="sub">Escolhe o que encaixar na tua correria</p>
+      <div class="grade col2" id="gradeDia"></div>
+      <div class="rodape-passo">
+        <button class="voltar" onclick="irPara(1)">← voltar</button>
+        <button class="btn btn-sim" data-next="3" disabled>Próximo →</button>
+      </div>
+    </section>
+
+    <!-- TELA 3: SEMANA -->
+    <section class="tela" data-tela="3">
+      <h2>Essa semana ou a próxima?</h2>
+      <p class="sub" id="subSemana">Do teu jeito, sem pressa</p>
+      <div class="grade col2" id="gradeSemana"></div>
+      <div class="rodape-passo">
+        <button class="voltar" onclick="irPara(2)">← voltar</button>
+        <button class="btn btn-sim" data-next="4" disabled>Próximo →</button>
+      </div>
+    </section>
+
+    <!-- TELA 4: HORA -->
+    <section class="tela" data-tela="4">
+      <h2>E qual horário?</h2>
+      <p class="sub" id="subHora">Manhã, tarde ou noite</p>
+      <div class="grade col2" id="gradeHora"></div>
+      <div class="horaexata" id="horaExataBox">
+        <label for="inputHora">A que horas, mais ou menos?</label>
+        <input type="time" id="inputHora" step="900" />
+      </div>
+      <div class="rodape-passo">
+        <button class="voltar" onclick="irPara(3)">← voltar</button>
+        <button class="btn btn-sim" data-next="5" disabled>Próximo →</button>
+      </div>
+    </section>
+
+    <!-- TELA 5: LUGAR -->
+    <section class="tela" data-tela="5">
+      <h2>Onde eu te levo?</h2>
+      <p class="sub" id="subLugar">Uns lugares bons de Porto Alegre</p>
+      <div class="clima" id="clima"></div>
+      <div class="grade" id="gradeLugar"></div>
+      <div class="lugarlivre" id="lugarLivreBox">
+        <label for="inputLugar">Manda onde tu quer ir</label>
+        <input type="text" id="inputLugar" maxlength="70" placeholder="ex.: aquele cafezinho que tu me convidou e depois cancelou" />
+      </div>
+      <div class="rodape-passo">
+        <button class="voltar" onclick="irPara(4)">← voltar</button>
+        <button class="btn btn-sim" data-next="6" disabled>Próximo →</button>
+      </div>
+    </section>
+
+    <!-- TELA 6: RECADO + RESUMO -->
+    <section class="tela" data-tela="6">
+      <h2>Quase lá</h2>
+      <p class="sub">Confere se tá certo. Se sobrar um tempinho, me deixa um recado aqui.</p>
+      <div class="resumo" id="resumo"></div>
+      <textarea id="recado" placeholder="Me deixa um recado? (opcional)"></textarea>
+      <div class="rodape-passo">
+        <button class="voltar" onclick="irPara(5)">← voltar</button>
+        <button class="btn btn-sim" id="btnConfirmar" onclick="confirmar()">Confirmar</button>
+      </div>
+    </section>
+
+    <!-- TELA 7: FINAL -->
+    <section class="tela" data-tela="7">
+      <span class="confirmado-emoji">🥰</span>
+      <h1 id="tituloFinal">Combinado!</h1>
+      <p class="sub" id="fraseFinal">Anotei tudo aqui. Até lá.</p>
+      <div class="resumo" id="resumoFinal"></div>
+      <div class="statusenvio" id="status"></div>
+      <div class="linha-botoes">
+        <button class="btn btnfoge" id="btnCancelar">Cancelar encontro</button>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ⚙️  CONFIG — EDITE AQUI
+   ============================================================ */
+const CONFIG = {
+  // Nome dela (deixa "" se não quiser usar nome)
+  nomeDela: "Carol",
+
+  // Apelido carinhoso/brincalhão usado em alguns textos (deixa "" pra não usar)
+  apelido: "meu bem",
+
+  // Seu nome (aparece no final / na planilha). Deixe "" se quiser.
+  seuNome: "",
+
+  // 👇 COLE AQUI a URL do Google Apps Script (termina em /exec)
+  //    Veja o passo a passo no arquivo LEIA-ME.md
+  scriptURL: "https://script.google.com/macros/s/AKfycbwLZdYslc3syCTgS8ZNMw7H9XV1L35FpMh_J74vwgiT9tnsy0ccIpLXwfe_UzZSv72f/exec",
+};
+
+/* ============================================================
+   OPÇÕES — pode adicionar/remover à vontade
+   ============================================================ */
+const DIAS = [
+  { ic:"💼", t:"Segunda", s:"depois do trampo" },
+  { ic:"💼", t:"Terça",   s:"depois do trampo" },
+  { ic:"💼", t:"Quinta",  s:"depois do trampo" },
+  { ic:"☀️", t:"Sábado",  s:"clássico e sem pressa" },
+  { ic:"🌤️", t:"Domingo", s:"mais tranquilo" },
+];
+
+// nesses dias (presenciais, depois do trabalho) só rola fim de tarde
+const DIAS_SO_FIM_TARDE = ["Segunda","Terça","Quinta"];
+
+const HORAS = [
+  { ic:"🍽️", t:"No almoço",       s:"comer algo bom" },
+  { ic:"🌤️", t:"À tarde",         s:"passeio sem pressa" },
+  { ic:"🌅", t:"Fim de tarde",    s:"pegar o pôr do sol" },
+  { ic:"🌙", t:"À noite",         s:"clima mais tranquilo" },
+];
+
+// horário exato sugerido por faixa (a pessoa pode ajustar)
+const DEFAULT_HORA = {
+  "De manhã":"09:00", "No almoço":"12:30", "À tarde":"15:00",
+  "Fim de tarde":"18:00", "À noite":"20:00",
+};
+
+// horário escolhido -> "período do dia"
+const PERIODO_POR_HORA = {
+  "De manhã":"manha",
+  "No almoço":"almoco",
+  "À tarde":"tarde",
+  "Fim de tarde":"fimtarde",
+  "À noite":"noite",
+};
+
+// Pool de lugares de POA. Cada um marca os PERÍODOS em que faz sentido,
+// e (opcional) os DIAS — ex.: o Brique da Redenção só rola sáb/dom.
+// A tela de "lugar" é montada filtrando por dia + horário escolhidos.
+const LUGARES_POOL = [
+  { ic:"🥐", t:"Brunch no Moinhos",      s:"comer com calma a dois",     periodos:["manha","almoco"] },
+  { ic:"☕", t:"Café e papo",             s:"uma cafeteria gostosa",       periodos:["manha","tarde"] },
+  { ic:"🍝", t:"Almoço a dois",           s:"comer bem e caminhar depois", periodos:["almoco"] },
+  { ic:"🥗", t:"Bistrô no Bom Fim",       s:"comer e dar uma volta depois",periodos:["almoco","noite"] },
+  { ic:"🌳", t:"Parque da Redenção",      s:"caminhar, sol e um docinho",  periodos:["manha","tarde","fimtarde"], outdoor:true },
+  { ic:"🌲", t:"Parcão",        s:"clima tranquilo e charmoso",  periodos:["tarde","fimtarde"], outdoor:true },
+  { ic:"🍫", t:"Chocolate quente",        s:"num café aconchegante",       periodos:["tarde","fimtarde"] },
+  { ic:"🛍️", t:"Shopping",                  s:"Comer alguma coisa, passear e quem sabe assistir um filminho",         periodos:["tarde","noite"] },
+  { ic:"🍰", t:"Doceria a dois",          s:"um doce e um café no capricho",       periodos:["fimtarde","noite"] },
+  { ic:"🍕", t:"Pizzaria a dois",         s:"dividir uma pizza e caminhar depois", periodos:["noite"] },
+  { ic:"🍝", t:"Jantar tranquilo",        s:"jantar e aquela caminhada depois",    periodos:["noite"] },
+];
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+const escolha = { dia:null, semana:null, hora:null, horaExata:"", lugar:null, recado:"", clima:"", chuva:false };
+
+// "essa" (0 dias) ou "próxima" (+7 dias) sobre a próxima ocorrência do dia
+const SEMANAS = [
+  { ic:"⚡", t:"Essa semana",    s:"bora logo" },
+  { ic:"📆", t:"Próxima semana", s:"com mais calma" },
+];
+const SEMANA_OFFSET = { "Essa semana":0, "Próxima semana":7 };
+let telaAtual = 0;
+
+/* ---- aplica nome/apelido do config nos textos ---- */
+(function aplicarNomes(){
+  const nome = CONFIG.nomeDela, apelido = CONFIG.apelido;
+  if(nome){
+    document.getElementById("tituloIntro").textContent = `Oi, ${apelido}. Tava pensando em ti.`;
+  }
+  if(apelido){
+    document.getElementById("tituloPergunta").textContent = `Topa um segundo encontro?`;
+    document.getElementById("tituloFinal").textContent = `Combinado, ${apelido}!`;
+  }
+})();
+
+/* ============================================================
+   NAVEGAÇÃO ENTRE TELAS
+   ============================================================ */
+function irPara(n){
+  document.querySelectorAll(".tela").forEach(t=>t.classList.remove("ativa"));
+  const alvo = document.querySelector(`.tela[data-tela="${n}"]`);
+  alvo.classList.add("ativa");
+  telaAtual = n;
+
+  // progresso visível só nas etapas do meio (2..6)
+  const prog = document.getElementById("progresso");
+  if(n>=2 && n<=6){
+    prog.style.display="flex";
+    document.querySelectorAll(".pip").forEach(p=>{
+      p.classList.toggle("on", +p.dataset.pip <= n);
+    });
+  } else {
+    prog.style.display="none";
+  }
+
+
+  // resseta o botão "Não" se voltar pra pergunta
+  if(n===1) resetNao();
+
+  // monta as opções de semana (essa/próxima) com as datas reais do dia escolhido
+  if(n===3) montarSemana();
+
+  // monta os horários conforme o dia (seg/ter/qui = só fim de tarde)
+  if(n===4) montarHoras();
+
+  // monta os lugares filtrando por dia + horário escolhidos + busca a previsão
+  if(n===5){ montarLugares(); mostrarClima(); }
+
+  // monta o resumo ao chegar na revisão
+  if(n===6) montarResumo("resumo");
+
+  // mostra só o botão-piada da tela atual (some com os que fugiram de outras)
+  ajustarFujoes(n);
+
+  window.scrollTo(0,0);
+}
+
+/* ============================================================
+   BOTÃO "NÃO" QUE FOGE
+   ============================================================ */
+const btnNao = document.getElementById("btnNao");
+const btnSim = document.getElementById("btnSim");
+let fugas = 0;
+const FRASES_NAO = [
+  "Não", "Tem certeza?", "Esse não funciona",
+  "Tenta o outro", "Quase!", "Foi por pouco",
+  "Esse é só enfeite", "Tá insistente, hein Carol",
+  "Sério mesmo?", "Tá, agora tu só tá me provocando",
+  "Vai, clica no certo, meu bem"
+];
+
+let escalaAtual = 1;
+const MARGEM = 12;       // margem mínima até a borda da tela
+const SIM_BASE = 0.95;    // tamanho inicial (menor) do botão "Sim"
+const SIM_MAX  = 1.6;    // tamanho máximo do "Sim"
+const SIM_PASSO = 0.13;  // quanto ele cresce a cada fuga
+const SIM_TRANSICAO = "transform .3s cubic-bezier(.34,1.56,.64,1)"; // crescimento com leve quique
+
+function fugir(){
+  if(!btnNao.classList.contains("fugindo")){
+    // o .card tem backdrop-filter, o que o torna o "containing block" de elementos
+    // position:fixed. Movendo o botão pro <body>, o fixed passa a valer pela JANELA.
+    const r = btnNao.getBoundingClientRect();   // onde ele está AGORA, antes de mover
+    document.body.appendChild(btnNao);
+    btnNao.classList.add("fugindo");
+    // arranca exatamente do lugar atual, sem animar esse 1º passo
+    btnNao.style.transition = "none";
+    btnNao.style.left = r.left + "px";
+    btnNao.style.top  = r.top  + "px";
+    void btnNao.offsetWidth;                     // força o reflow p/ fixar o ponto de partida
+    btnNao.style.transition = "";                // volta a usar a transição do CSS (desliza)
+  }
+  fugas++;
+
+  // 1) troca texto e escala ANTES de medir (senão o tamanho muda depois e vaza)
+  btnNao.textContent = FRASES_NAO[Math.min(fugas, FRASES_NAO.length-1)];
+  escalaAtual = Math.max(.62, 1 - fugas*0.05);
+  btnNao.style.transform = `scale(${escalaAtual})`;
+
+  // cresce o "Sim" gradualmente, partindo do tamanho menor
+  const simEscala = Math.min(SIM_MAX, SIM_BASE + fugas*SIM_PASSO);
+  btnSim.style.transition = SIM_TRANSICAO;
+  btnSim.style.transform = `scale(${simEscala})`;
+
+  // 2) mede o tamanho REAL já com o texto novo, e calcula o tamanho com a escala
+  //    (a escala parte do centro, daí o deslocamento offX/offY)
+  const w = btnNao.offsetWidth, h = btnNao.offsetHeight;   // ler offsetWidth força o reflow
+  const sw = w*escalaAtual, sh = h*escalaAtual;
+  const offX = (w - sw)/2, offY = (h - sh)/2;
+
+  // 3) sorteia uma posição em que a caixa visual cabe INTEIRA na tela
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const maxVX = Math.max(MARGEM, vw - sw - MARGEM);
+  const maxVY = Math.max(MARGEM, vh - sh - MARGEM);
+  const visX = MARGEM + Math.random()*(maxVX - MARGEM);
+  const visY = MARGEM + Math.random()*(maxVY - MARGEM);
+
+  // 4) converte o canto visual em valor de left/top (caixa de layout)
+  btnNao.style.left = (visX - offX) + "px";
+  btnNao.style.top  = (visY - offY) + "px";
+}
+// começa estático e clicável; só passa a fugir do mouse DEPOIS do 1º clique/toque
+let ativado = false;
+btnNao.addEventListener("mouseenter", ()=>{ if(ativado) fugir(); });
+btnNao.addEventListener("click", e=>{ e.preventDefault(); ativado = true; fugir(); });
+btnNao.addEventListener("touchstart", e=>{ e.preventDefault(); ativado = true; fugir(); }, {passive:false});
+
+// clique no "Topo": some com o "Não" (ele vive no <body> qd está fugindo) e avança
+function topar(){
+  btnNao.classList.add("sumiu");
+  irPara(2);
+}
+
+// se a tela girar/redimensionar, reencaixa o botão pra não ficar cortado
+function clampNao(){
+  if(!btnNao.classList.contains("fugindo")) return;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const w = btnNao.offsetWidth, h = btnNao.offsetHeight;
+  const sw = w*escalaAtual, sh = h*escalaAtual;
+  const offX = (w - sw)/2, offY = (h - sh)/2;
+  let visX = (parseFloat(btnNao.style.left)||0) + offX;
+  let visY = (parseFloat(btnNao.style.top )||0) + offY;
+  visX = Math.min(Math.max(MARGEM, visX), Math.max(MARGEM, vw - sw - MARGEM));
+  visY = Math.min(Math.max(MARGEM, visY), Math.max(MARGEM, vh - sh - MARGEM));
+  btnNao.style.left = (visX - offX) + "px";
+  btnNao.style.top  = (visY - offY) + "px";
+}
+window.addEventListener("resize", clampNao);
+
+function resetNao(){
+  fugas = 0;
+  escalaAtual = 1;
+  ativado = false;   // precisa clicar de novo pra começar a fugir
+  btnNao.classList.remove("fugindo");
+  btnNao.classList.remove("sumiu");   // volta a aparecer se a pessoa retornar
+  btnNao.style.left=btnNao.style.top="";
+  btnNao.style.transform="";
+  btnNao.textContent="Não";
+  // "Sim" volta pro tamanho inicial (menor)
+  btnSim.style.transition = SIM_TRANSICAO;
+  btnSim.style.transform = `scale(${SIM_BASE})`;
+  // devolve o botão pra dentro da pergunta (depois do "Sim")
+  document.getElementById("areaPergunta").appendChild(btnNao);
+}
+
+/* ============================================================
+   MONTAR AS GRADES DE OPÇÕES
+   ============================================================ */
+function montarGrade(elId, lista, chave, onPick){
+  const el = document.getElementById(elId);
+  el.innerHTML = "";
+  lista.forEach(op=>{
+    const b = document.createElement("button");
+    b.className = "opcao";
+    b.dataset.val = op.t;
+    b.dataset.outdoor = op.outdoor ? "1" : "0";
+    b.innerHTML = `<span class="ic">${op.ic}</span>
+                   <span class="txt"><b>${op.t}</b><small>${op.s}</small></span>
+                   <span class="check">✓</span>`;
+    b.onclick = ()=>{
+      if(b.classList.contains("chuva")) return;   // bloqueado por chuva (lugar ao ar livre)
+      [...el.children].forEach(c=>c.classList.remove("sel"));
+      b.classList.add("sel");
+      escolha[chave] = op.t;
+      // libera o botão "Próximo" da tela
+      const tela = b.closest(".tela");
+      const next = tela.querySelector("[data-next]");
+      next.disabled = false;
+      if(onPick) onPick(op);
+    };
+    el.appendChild(b);
+  });
+}
+montarGrade("gradeDia", DIAS, "dia");
+
+// Monta a tela de SEMANA, mostrando a DATA real de cada opção (essa/próxima)
+// já calculada a partir do dia escolhido.
+function montarSemana(){
+  const base = dataDoDia(escolha.dia);
+  const lista = SEMANAS.map(op=>{
+    const off = SEMANA_OFFSET[op.t] || 0;
+    let s = op.s;
+    if(base){
+      const d = new Date(base); d.setDate(d.getDate() + off);
+      s = d.toLocaleDateString("pt-BR", { weekday:"short", day:"2-digit", month:"2-digit" });
+    }
+    return { ...op, s };
+  });
+
+  escolha.semana = null;
+  montarGrade("gradeSemana", lista, "semana");
+  document.querySelector('.tela[data-tela="3"] [data-next]').disabled = true;
+}
+
+// Monta a tela de HORÁRIO conforme o dia escolhido.
+// Em seg/ter/qui (dias presenciais), só "Fim de tarde" — e já deixo pré-selecionado.
+function montarHoras(){
+  const soFimTarde = DIAS_SO_FIM_TARDE.includes(escolha.dia);
+  const lista = soFimTarde ? HORAS.filter(h => h.t === "Fim de tarde") : HORAS;
+
+  const box = document.getElementById("horaExataBox");
+  const inp = document.getElementById("inputHora");
+
+  escolha.hora = null;
+  escolha.horaExata = "";
+
+  // dias de semana (presenciais): trava o seletor entre 18h e 19h
+  if(soFimTarde){ inp.min = "18:00"; inp.max = "19:00"; }
+  else { inp.removeAttribute("min"); inp.removeAttribute("max"); }
+
+  // ao escolher a parte do dia, revela o seletor com a hora sugerida da faixa
+  montarGrade("gradeHora", lista, "hora", op=>{
+    const def = DEFAULT_HORA[op.t] || "";
+    inp.value = def;
+    escolha.horaExata = def;
+    box.classList.add("show");
+  });
+  document.querySelector('.tela[data-tela="4"] [data-next]').disabled = true;
+  box.classList.remove("show");   // esconde até escolher a faixa
+
+  // se só há uma opção, já seleciona (a pessoa só ajusta a hora)
+  if(lista.length === 1){
+    document.querySelector('#gradeHora .opcao')?.click();
+  }
+
+  const sub = document.getElementById("subHora");
+  if(sub){
+    clearTimeout(avisoTimer);
+    sub.classList.remove("aviso");
+    sub.textContent = soFimTarde
+      ? "Nesse dia é fim de tarde — entre 18h e 19h"
+      : "Manhã, tarde ou noite";
+    sub.dataset.base = sub.textContent;   // texto pra voltar depois do aviso
+  }
+}
+
+// "HH:MM" -> faixa do dia correspondente (ou null se for de manhã)
+function partePeloHorario(hhmm){
+  if(!hhmm) return null;
+  const [h, m] = hhmm.split(":").map(Number);
+  const min = h*60 + m;
+  if(min >= 11*60 && min < 14*60) return "No almoço";
+  if(min >= 14*60 && min < 17*60) return "À tarde";
+  if(min >= 17*60 && min < 19*60) return "Fim de tarde";
+  if(min >= 19*60 || min < 5*60)  return "À noite";
+  return null; // 05:00–10:59 = manhã (sem opção no grid)
+}
+
+// se a hora exata "vaza" pra outra faixa, troca o chip selecionado
+// (sem resetar a hora que a pessoa escolheu) e avisa
+let avisoTimer = null;
+function ajustarPartePelaHora(){
+  const alvo = partePeloHorario(escolha.horaExata);
+  if(!alvo || alvo === escolha.hora) return;
+  const chip = document.querySelector(`#gradeHora .opcao[data-val="${alvo}"]`);
+  if(!chip) return; // essa faixa não existe nas opções do dia -> mantém a atual
+
+  document.querySelectorAll('#gradeHora .opcao').forEach(c=>c.classList.remove('sel'));
+  chip.classList.add('sel');
+  escolha.hora = alvo;
+
+  // piscadinha no chip novo
+  chip.classList.remove('flash'); void chip.offsetWidth; chip.classList.add('flash');
+
+  // aviso no subtítulo, voltando ao normal depois de uns segundos
+  const sub = document.getElementById("subHora");
+  if(sub){
+    sub.textContent = `Esse horário já é ${alvo.toLowerCase()}, ajustei pra ti`;
+    sub.classList.add("aviso");
+    clearTimeout(avisoTimer);
+    avisoTimer = setTimeout(()=>{
+      sub.classList.remove("aviso");
+      if(sub.dataset.base) sub.textContent = sub.dataset.base;
+    }, 3500);
+  }
+}
+
+// Monta a tela de LUGARES filtrando pelo dia + horário escolhidos.
+// Chamada toda vez que se entra na tela 4 (a escolha anterior é zerada).
+function montarLugares(){
+  const periodo = PERIODO_POR_HORA[escolha.hora];
+  const dia = escolha.dia;
+
+  let lista = LUGARES_POOL.filter(l =>
+    (!periodo || l.periodos.includes(periodo)) &&
+    (!l.dias  || l.dias.includes(dia))
+  );
+
+  // segurança: se o filtro de dia apertar demais, relaxa e usa só o período
+  if(lista.length < 3){
+    lista = LUGARES_POOL.filter(l => !periodo || l.periodos.includes(periodo));
+  }
+
+  // "Eu escolho" (abre campo de texto) e "Surpreenda-me" sempre no fim
+  lista = lista.concat([
+    { ic:"📝", t:"Eu escolho o lugar", s:"me diz onde tu quer ir", periodos:[], livre:true },
+    { ic:"🎲", t:"Surpreenda-me",      s:"deixa por tua conta",     periodos:[] },
+  ]);
+
+  // como o lugar depende de dia/hora, zera a escolha anterior e trava o "Próximo"
+  escolha.lugar = null;
+  const next = document.querySelector('.tela[data-tela="5"] [data-next]');
+  const box  = document.getElementById("lugarLivreBox");
+  const inp  = document.getElementById("inputLugar");
+  box.classList.remove("show");
+  inp.value = "";
+
+  montarGrade("gradeLugar", lista, "lugar", op=>{
+    if(op.livre){               // ela mesma diz onde quer ir
+      box.classList.add("show");
+      escolha.lugar = inp.value.trim();
+      next.disabled = !escolha.lugar;   // precisa digitar algo
+      inp.focus();
+    }else{
+      box.classList.remove("show");     // escolha.lugar já é o nome da opção
+    }
+  });
+  next.disabled = true;
+
+  // subtítulo com a "vibe" escolhida
+  const sub = document.getElementById("subLugar");
+  if(sub) sub.textContent = `Boas opções pra ${fraseVibe(dia, escolha.hora)}`;
+}
+
+function fraseVibe(dia, hora){
+  return `${(dia||"").toLowerCase()} ${(hora||"").toLowerCase()}`.trim();
+}
+
+// liga os botões "Próximo"
+document.querySelectorAll("[data-next]").forEach(b=>{
+  b.addEventListener("click", ()=> irPara(+b.dataset.next));
+});
+
+// hora exata escolhida no seletor (e ajusta a faixa do dia se "vazar")
+document.getElementById("inputHora").addEventListener("input", e=>{
+  const inp = e.target;
+  let v = inp.value;
+  if(v){   // respeita o min/max quando houver (dias de semana = 18h–19h)
+    if(inp.min && v < inp.min) v = inp.min;
+    if(inp.max && v > inp.max) v = inp.max;
+    if(v !== inp.value) inp.value = v;
+  }
+  escolha.horaExata = v;
+  ajustarPartePelaHora();
+});
+
+// lugar digitado por ela (quando escolhe "Eu escolho o lugar")
+document.getElementById("inputLugar").addEventListener("input", e=>{
+  const v = e.target.value.trim();
+  escolha.lugar = v;
+  document.querySelector('.tela[data-tela="5"] [data-next]').disabled = !v;
+});
+
+/* ---- botões-piada que fogem pela tela toda (igual o "Não") ---- */
+const fujoes = [];   // pra reencaixar/esconder quando troca de tela
+function fazerFugir(btn, frases, parceiro){
+  btn.dataset.home = btn.closest(".tela")?.dataset.tela || "";
+  fujoes.push(btn);
+  let n = 0;
+  const M = 12;
+  function go(){
+    if(!btn.classList.contains("solto")){
+      // tira do card (que tem backdrop-filter) e joga no body -> fixed pela JANELA
+      const r = btn.getBoundingClientRect();
+      document.body.appendChild(btn);
+      btn.classList.add("solto");
+      btn.style.transition = "none";
+      btn.style.left = r.left + "px";
+      btn.style.top  = r.top  + "px";
+      void btn.offsetWidth;          // fixa o ponto de partida
+      btn.style.transition = "";     // volta a deslizar
+    }
+    n++;
+    btn.textContent = frases[Math.min(n, frases.length-1)];
+
+    // encolhe o fujão (escala < 1 mantém ele dentro da tela) e cresce o parceiro
+    btn.style.transform = `scale(${Math.max(0.55, 1 - n*0.07)})`;
+    if(parceiro){
+      parceiro.style.transition = SIM_TRANSICAO;
+      parceiro.style.transform = `scale(${Math.min(1.6, 1 + n*0.09)})`;
+    }
+
+    const w = btn.offsetWidth, h = btn.offsetHeight;
+    const x = M + Math.random()*Math.max(0, innerWidth  - w - 2*M);
+    const y = M + Math.random()*Math.max(0, innerHeight - h - 2*M);
+    btn.style.left = x + "px";
+    btn.style.top  = y + "px";
+  }
+  btn.addEventListener("mouseenter", go);
+  btn.addEventListener("click", e=>{ e.preventDefault(); go(); });
+  btn.addEventListener("touchstart", e=>{ e.preventDefault(); go(); }, {passive:false});
+}
+
+// mostra só o fujão da tela atual (esconde os que vazaram de outras telas)
+function ajustarFujoes(n){
+  fujoes.forEach(b=>{
+    b.style.display = (b.dataset.home === String(n)) ? "" : "none";
+  });
+}
+
+// se a janela mudar de tamanho, reencaixa os fujões soltos
+window.addEventListener("resize", ()=>{
+  fujoes.forEach(b=>{
+    if(!b.classList.contains("solto")) return;
+    const w = b.offsetWidth, h = b.offsetHeight, M = 12;
+    const x = Math.min(parseFloat(b.style.left)||0, Math.max(M, innerWidth  - w - M));
+    const y = Math.min(parseFloat(b.style.top )||0, Math.max(M, innerHeight - h - M));
+    b.style.left = Math.max(M, x) + "px";
+    b.style.top  = Math.max(M, y) + "px";
+  });
+});
+
+fazerFugir(document.getElementById("btnAgoraNao"), [
+  "Agora não", "Vai ser rapidinho", "Só um minutinho", "Confia em mim",
+  "Tá com pressa de quê?", "Tu vai gostar", "Para de fugir tu também"
+], document.getElementById("btnPodeFalar"));
+fazerFugir(document.getElementById("btnCancelar"), [
+  "Cancelar encontro", "Não vai dar", "Tarde demais", "Já tá nos planos",
+  "Esquece", "Nem vem", "Tá valendo, e valendo tá"
+]);
+
+/* ============================================================
+   PREVISÃO DO TEMPO (Open-Meteo — grátis, sem chave de API)
+   ============================================================ */
+const POA = { lat:-30.0331, lon:-51.2300 };   // Porto Alegre
+const DIA_SEMANA = { "Domingo":0,"Segunda":1,"Terça":2,"Quarta":3,"Quinta":4,"Sexta":5,"Sábado":6 };
+
+// rótulo do dia ("Sábado", "Quinta"...) -> data real (objeto Date)
+function dataDoDia(label){
+  const alvo = DIA_SEMANA[label];
+  if(alvo === undefined) return null;          // dia sem data definível
+  const d = new Date(); d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + ((alvo - d.getDay() + 7) % 7)); // próxima ocorrência (hoje se já for o dia)
+  return d;
+}
+
+// data final do encontro = dia escolhido + offset da semana (essa/próxima)
+function dataDoEncontro(){
+  const base = dataDoDia(escolha.dia);
+  if(!base) return null;
+  const d = new Date(base);
+  d.setDate(d.getDate() + (SEMANA_OFFSET[escolha.semana] || 0));
+  return d;
+}
+
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+
+// código WMO -> emoji + descrição em pt-BR
+function climaWMO(c){
+  const m = {
+    0:["☀️","Céu limpo"], 1:["🌤️","Sol entre nuvens"], 2:["⛅","Parcialmente nublado"], 3:["☁️","Nublado"],
+    45:["🌫️","Névoa"], 48:["🌫️","Névoa gelada"],
+    51:["🌦️","Garoa fraca"], 53:["🌦️","Garoa"], 55:["🌦️","Garoa forte"],
+    56:["🌧️","Garoa congelante"], 57:["🌧️","Garoa congelante"],
+    61:["🌧️","Chuva fraca"], 63:["🌧️","Chuva"], 65:["🌧️","Chuva forte"],
+    66:["🌧️","Chuva congelante"], 67:["🌧️","Chuva congelante"],
+    71:["🌨️","Neve fraca"], 73:["🌨️","Neve"], 75:["🌨️","Neve forte"], 77:["🌨️","Flocos de neve"],
+    80:["🌦️","Pancadas de chuva"], 81:["🌦️","Pancadas de chuva"], 82:["⛈️","Pancadas fortes"],
+    85:["🌨️","Pancadas de neve"], 86:["🌨️","Pancadas de neve"],
+    95:["⛈️","Tempestade"], 96:["⛈️","Tempestade com granizo"], 99:["⛈️","Tempestade com granizo"],
+  };
+  return m[c] || ["🌡️","Tempo indefinido"];
+}
+
+// bloqueia os lugares ao ar livre quando há previsão de chuva
+function marcarChuva(){
+  const grid = document.getElementById("gradeLugar");
+  if(!grid) return;
+  grid.querySelectorAll('.opcao').forEach(ch=>{
+    const aviso = ch.dataset.outdoor === "1" && escolha.chuva;
+    ch.classList.toggle('chuva', aviso);
+
+    // se estava selecionado e ficou indisponível, desfaz a seleção
+    if(aviso && ch.classList.contains('sel')){
+      ch.classList.remove('sel');
+      escolha.lugar = null;
+      const next = document.querySelector('.tela[data-tela="5"] [data-next]');
+      if(next) next.disabled = true;
+    }
+
+    const small = ch.querySelector('.txt small');
+    if(!small) return;
+    if(aviso){
+      if(!small.dataset.orig) small.dataset.orig = small.textContent;
+      small.textContent = "☔ vai chover — indisponível";
+    }else if(small.dataset.orig){
+      small.textContent = small.dataset.orig;
+      delete small.dataset.orig;
+    }
+  });
+}
+
+async function mostrarClima(){
+  const el = document.getElementById("clima");
+  escolha.clima = "";
+  escolha.chuva = false;
+  marcarChuva();                 // limpa avisos antigos enquanto carrega
+  const data = dataDoEncontro();
+  if(!data){ el.className = "clima"; el.innerHTML = ""; return; }  // dia sem data: não mostra
+
+  // estado de carregando
+  el.className = "clima show carregando";
+  el.textContent = "Buscando a previsão pra esse dia…";
+
+  const alvo = ymd(data);
+  try{
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${POA.lat}&longitude=${POA.lon}`
+      + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max`
+      + `&timezone=America%2FSao_Paulo&forecast_days=16`;
+    const r = await fetch(url);
+    const j = await r.json();
+    const i = j.daily.time.indexOf(alvo);
+    if(i < 0) throw new Error("data fora do alcance da previsão");
+
+    const code = j.daily.weather_code[i];
+    const [emoji, txt] = climaWMO(code);
+    const tmax = Math.round(j.daily.temperature_2m_max[i]);
+    const tmin = Math.round(j.daily.temperature_2m_min[i]);
+    const chuva = j.daily.precipitation_probability_max?.[i];
+    const quando = data.toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"2-digit" });
+
+    // qualquer precipitação (garoa/chuva/neve/pancada/tempestade = code>=51) ou alta chance
+    escolha.chuva = (code >= 51) || (chuva != null && chuva >= 60);
+    marcarChuva();
+
+    el.className = "clima show";
+    el.innerHTML = `
+      <span class="wemoji">${emoji}</span>
+      <span class="winfo"><b>${txt}</b><small>${quando}${chuva!=null?` · ${chuva}% de chuva`:""}</small></span>
+      <span class="wtemp">${tmax}° / ${tmin}°</span>`;
+
+    // guarda pro resumo / planilha
+    escolha.clima = `${emoji} ${txt}, ${tmax}°/${tmin}°${chuva!=null?`, ${chuva}% de chuva`:""} (${quando})`;
+  }catch(e){
+    console.warn("previsão indisponível:", e);
+    el.className = "clima";   // some sem atrapalhar caso falhe (offline etc.)
+    el.innerHTML = "";
+    escolha.chuva = false;
+    marcarChuva();
+  }
+}
+
+/* ============================================================
+   RESUMO
+   ============================================================ */
+// "À noite, 20:00" (parte do dia + hora exata, se houver)
+function horaTexto(){
+  if(!escolha.hora) return "-";
+  return `${escolha.hora}${escolha.horaExata?`, ${escolha.horaExata}`:""}`;
+}
+
+function montarResumo(elId){
+  const el = document.getElementById(elId);
+  const d = dataDoEncontro();
+  const dm = d ? d.toLocaleDateString("pt-BR", { day:"2-digit", month:"2-digit" }) : "";
+  const diaValor = escolha.dia
+    ? `${escolha.dia}${dm?`, ${dm}`:""}${escolha.semana?` · ${escolha.semana.toLowerCase()}`:""}`
+    : "-";
+  el.innerHTML = `
+    <div class="item"><span class="ic">📅</span><div><b>Dia</b><span>${diaValor}</span></div></div>
+    <div class="item"><span class="ic">⏰</span><div><b>Horário</b><span>${horaTexto()}</span></div></div>
+    <div class="item"><span class="ic">📍</span><div><b>Lugar</b><span>${escolha.lugar||"-"}</span></div></div>
+  `;
+  if(escolha.clima){
+    el.insertAdjacentHTML("beforeend",
+      `<div class="item"><span class="ic">🌡️</span><div><b>Previsão</b><span>${escolha.clima}</span></div></div>`);
+  }
+}
+
+/* ============================================================
+   CONFIRMAR + ENVIAR PRA PLANILHA
+   ============================================================ */
+async function confirmar(){
+  escolha.recado = document.getElementById("recado").value.trim();
+  const btn = document.getElementById("btnConfirmar");
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+
+  montarResumo("resumoFinal");
+  if(escolha.recado){
+    document.getElementById("resumoFinal").insertAdjacentHTML("beforeend",
+      `<div class="item"><span class="ic">💬</span><div><b>Recado</b><span>${escolha.recado.replace(/</g,"&lt;")}</span></div></div>`);
+  }
+
+  // monta a frase final personalizada
+  const dEnc = dataDoEncontro();
+  const quando = dEnc ? ` (${dEnc.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})})` : "";
+  const horaFrase = escolha.horaExata ? `às ${escolha.horaExata}` : escolha.hora.toLowerCase();
+  const bem = CONFIG.apelido ? `, ${CONFIG.apelido}` : "";
+  document.getElementById("fraseFinal").textContent =
+    `${escolha.dia}${quando}, ${horaFrase}, no ${escolha.lugar}. Tá anotado.`;
+
+  await enviar();           // tenta gravar na planilha
+  irPara(7);
+  festa();                  // confete!
+}
+
+async function enviar(){
+  const status = document.getElementById("status");
+  const dEnc = dataDoEncontro();
+  const payload = {
+    resposta: "Topou",
+    dia: escolha.dia,
+    semana: escolha.semana || "",
+    data: dEnc ? dEnc.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"}) : "",
+    hora: horaTexto(),
+    lugar: escolha.lugar,
+    clima: escolha.clima || "",
+    recado: escolha.recado,
+    nomeDela: CONFIG.nomeDela || "",
+    seuNome: CONFIG.seuNome || "",
+    userAgent: navigator.userAgent,
+    quando: new Date().toLocaleString("pt-BR")
+  };
+
+  // backup local sempre (caso a internet/planilha falhe)
+  try{
+    const hist = JSON.parse(localStorage.getItem("respostas_encontro")||"[]");
+    hist.push(payload);
+    localStorage.setItem("respostas_encontro", JSON.stringify(hist));
+  }catch(e){}
+
+  const semScript = !CONFIG.scriptURL || CONFIG.scriptURL.includes("COLE_AQUI");
+  if(semScript){
+    status.textContent = "✅ Salvo! (planilha ainda não configurada — veja o LEIA-ME.md)";
+    console.log("Resposta:", payload);
+    return;
+  }
+
+  try{
+    // no-cors + text/plain = sem preflight; o Apps Script lê e.postData.contents
+    await fetch(CONFIG.scriptURL, {
+      method:"POST",
+      mode:"no-cors",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    status.textContent = "✅ Resposta enviada com sucesso 💚";
+  }catch(err){
+    status.textContent = "⚠️ Não consegui enviar agora, mas guardei aqui no aparelho.";
+    console.warn("Falha no envio:", err);
+  }
+}
+
+/* ============================================================
+   CÉU DE CORAÇÕES (fundo)
+   ============================================================ */
+(function ceu(){
+  const ceu = document.getElementById("ceu");
+  const figs = ["🌷","💗"];   // pétalas leves (lírio é a flor dela)
+  setInterval(()=>{
+    const s = document.createElement("span");
+    s.className="floaty";
+    s.textContent = figs[Math.floor(Math.random()*figs.length)];
+    s.style.left = Math.random()*100+"vw";
+    s.style.fontSize = (16+Math.random()*22)+"px";
+    const dur = 7+Math.random()*7;
+    s.style.animationDuration = dur+"s";
+    ceu.appendChild(s);
+    setTimeout(()=>s.remove(), dur*1000);
+  }, 2400);
+})();
+
+/* ============================================================
+   CONFETE FINAL
+   ============================================================ */
+function festa(){
+  const cv = document.getElementById("confete");
+  const ctx = cv.getContext("2d");
+  cv.width = innerWidth; cv.height = innerHeight;
+  const cores = ["#ff5e8a","#ffd166","#a18cd1","#06d6a0","#ff85b3","#fff"];
+  const parts = [];
+  for(let i=0;i<160;i++){
+    parts.push({
+      x: Math.random()*cv.width,
+      y: -20 - Math.random()*cv.height*0.5,
+      r: 5+Math.random()*8,
+      c: cores[Math.floor(Math.random()*cores.length)],
+      vy: 2+Math.random()*4,
+      vx: -2+Math.random()*4,
+      rot: Math.random()*6.28,
+      vr: -0.2+Math.random()*0.4,
+      heart: Math.random()<0.3
+    });
+  }
+  let frames = 0;
+  (function anima(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.vy+=0.03;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.fillStyle=p.c;
+      if(p.heart){
+        ctx.font = `${p.r*2.4}px serif`;
+        ctx.fillText("❤", -p.r, p.r);
+      }else{
+        ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.6);
+      }
+      ctx.restore();
+    });
+    frames++;
+    if(frames<320) requestAnimationFrame(anima);
+    else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+window.addEventListener("resize", ()=>{
+  const cv=document.getElementById("confete");
+  cv.width=innerWidth; cv.height=innerHeight;
+});
+</script>
+</body>
+</html>
